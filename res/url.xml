@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<urls>
+	<url>
+		<path>/</path>
+		<handler>com.templatesrv.test.pages.Home</handler>
+		<ishome>true</ishome>
+	</url>
+	<url>
+		<path>/404</path>
+		<handler>com.templatesrv.test.pages.FourOhFour</handler>
+		<isdefault>true</isdefault> <!-- If no other match can be found, show 404 page -->
+	</url>
+	<url>
+		<path>/about</path>
+		<handler>com.templatesrv.test.pages.AboutUs</handler>
+	</url>
+	<url>
+		<path>/article/(\d+)</path>
+		<handler>com.templatesrv.test.pages.Article</handler>
+	</url>
+</urls>

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<settings>
+	<setting>
+		<name>PROJECT_NAME</name>
+		<value>Test</value>
+	</setting>
+	<setting>
+		<name>PROJECT_AUTHOR</name>
+		<value>Luke Donovan</value>
+	</setting>
+	<setting>
+		<name>URLS_XML_LOCATION</name>
+		<value>res/url.xml</value>
+	</setting>
+	<setting>
+		<name>HTML_LOCATION</name>
+		<value>res/html/</value>
+	</setting>
+</settings>
