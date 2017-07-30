@@ -22,8 +22,29 @@ public class Logger {
 			System.out.printf("[%s@%d] %s\n", m.getLogLevel().name(), m.getTime(), m.getMessage());
 	}
 	
-	public void log(LogLevel l, String s) {
-		LogMessage m = new LogMessage(l, s);
+	public void info(String s) {
+		LogMessage m = new LogMessage(ErrorLevel.INFO, s);
+		this.logs.add(m);
+		if (this.shouldPrintLogs)
+			System.out.printf("[%s@%d] %s\n", m.getLogLevel().name(), m.getTime(), m.getMessage());
+	}
+	
+	public void warn(String s) {
+		LogMessage m = new LogMessage(ErrorLevel.WARN, s);
+		this.logs.add(m);
+		if (this.shouldPrintLogs)
+			System.out.printf("[%s@%d] %s\n", m.getLogLevel().name(), m.getTime(), m.getMessage());
+	}
+	
+	public void error(String s) {
+		LogMessage m = new LogMessage(ErrorLevel.ERROR, s);
+		this.logs.add(m);
+		if (this.shouldPrintLogs)
+			System.out.printf("[%s@%d] %s\n", m.getLogLevel().name(), m.getTime(), m.getMessage());
+	}
+	
+	public void fatal(String s) {
+		LogMessage m = new LogMessage(ErrorLevel.FATAL, s);
 		this.logs.add(m);
 		if (this.shouldPrintLogs)
 			System.out.printf("[%s@%d] %s\n", m.getLogLevel().name(), m.getTime(), m.getMessage());

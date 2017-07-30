@@ -10,6 +10,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 
+import com.google.gson.Gson;
+
 public class FileUtils {
 	public static String readFile(String fileName) {
 		try {
@@ -33,5 +35,13 @@ public class FileUtils {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static JSONResponseSettings readJSONSettings(String fileName) {
+		return new Gson().fromJson(readFile(fileName), JSONResponseSettings.class);
+	}
+	
+	public static JSONResponseURLs readJSONURLs(String fileName) {
+		return new Gson().fromJson(readFile(fileName), JSONResponseURLs.class);
 	}
 }

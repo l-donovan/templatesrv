@@ -2,134 +2,163 @@ package com.templatesrv.base;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.sun.net.httpserver.HttpServer;
 import com.templatesrv.utils.FileUtils;
-import com.templatesrv.utils.LogLevel;
+import com.templatesrv.utils.Global;
+import com.templatesrv.utils.JSONResponseSettings;
+import com.templatesrv.utils.JSONResponseURLs;
+import com.templatesrv.utils.JSONURL;
 import com.templatesrv.utils.Logger;
+import com.templatesrv.utils.TagUtils;
 
 public class TemplateServer {
 	private HttpServer server;
 	private Map<String, MappedURL> urls;
 	private Map<String, String> settings;
-	private MappedURL defaultURL;
+	private ArrayList<String> settingsList;
+	private MappedURL fourOhFourURL;
 	private RequestHandler handler;
-	
+
 	protected Logger logger;
 
 	public TemplateServer(int port) {
 		this.urls = new HashMap<String, MappedURL>();
 		this.settings = new HashMap<String, String>();
-		this.logger = new Logger(true);
+		this.settingsList = new ArrayList<String>();
 
 		loadSettingsFile();
-		this.logger.log(LogLevel.INFO, "Settings file has been loaded");
+		Global.LOGGER.info("Settings file has been loaded");
 
-		loadURLFile(this.settings.getOrDefault("URLS_XML_LOCATION", "res/url.xml"));
-		this.logger.log(LogLevel.INFO, "URLs file has been loaded");
-		
+		loadURLFile(this.settings.getOrDefault("URLLocation", "res/url.xml"));
+		Global.LOGGER.info("URLs file has been loaded");
+
 		try {
 			this.server = HttpServer.create(new InetSocketAddress(port), 0);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Code.throwCode(Code.ADDRESS_IN_USE);
 		}
-		
-		this.logger.log(LogLevel.INFO, "Server has been created on port " + port);
-		
+
+		Global.LOGGER.info("Server has been created on port " + port);
+
 		this.handler = new RequestHandler(this);
 		server.createContext("/", this.handler);
-		
-		this.logger.log(LogLevel.INFO, "Server context has been registered");
+
+		Global.LOGGER.info("Server context has been registered");
 	}
-	
+
 	public void loadSettingsFile() {
-		Document doc = FileUtils.readXML("settings.xml");
-		NodeList settingsList = doc.getElementsByTagName("setting");
-		
-		for (int i = 0; i < settingsList.getLength(); i++) {
-			Node n = settingsList.item(i);
-			
-			if (n.getNodeType() == Node.ELEMENT_NODE) {
-				Element e = (Element) n;
-				this.settings.put(
-						e.getElementsByTagName("name").item(0).getTextContent(),
-						e.getElementsByTagName("value").item(0).getTextContent());
-			}
+		JSONResponseSettings j = FileUtils.readJSONSettings("res/settings.json");
+		for (String s : j.getSettings().keySet()) {
+			this.settingsList.add(s);
+			this.settings.put(s, j.getSettings().get(s));
 		}
 	}
 
 	public void loadURLFile(String fileName) {
-		try {
-			Document doc = FileUtils.readXML(fileName);
-			NodeList urlList = doc.getElementsByTagName("url");
-
-			for (int i = 0; i < urlList.getLength(); i++) {
-				Node n = urlList.item(i);
-
-				if (n.getNodeType() == Node.ELEMENT_NODE) {
-					Element e = (Element) n;
-					String p = e.getElementsByTagName("path").item(0).getTextContent(),
-						   h = e.getElementsByTagName("handler").item(0).getTextContent();
-					MappedURL url = new MappedURL(p, h);
-					NodeList q = e.getElementsByTagName("isdefault");
-					if (q.getLength() > 0) {
-						if (q.item(0).getTextContent().equals("true"))
-							this.defaultURL = url;
-					}
-					this.urls.put(p, url);
-					this.logger.log(LogLevel.INFO, String.format("Registered path \"%s\" to \"%s\"", p, h));
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		JSONResponseURLs j = FileUtils.readJSONURLs(fileName);
+		String uPath, uHandler;
+		MappedURL url;
+		
+		for (JSONURL u : j.getURLs()) {
+			uPath = this.getSettingOrDefault(u.getPathPrepend(), "") + u.getPath();
+			uHandler = u.getHandler();
+			url = new MappedURL(uPath, uHandler);
+			if (u.is404())
+				this.fourOhFourURL = url;
+			this.urls.put(uPath, url);
+			Global.LOGGER.info(String.format("Registered path \"%s\" to \"%s\"", uPath, uHandler));
 		}
 	}
-	
-	public MappedURL getDefaultURL() {
-		return this.defaultURL;
+
+	public String readHTML(String fileName) {
+		String HTML_LOCATION = this.getSettingOrDefault("HTMLLocation", "  ");
+		String html = FileUtils.readFile(HTML_LOCATION.substring(1) + "/" + fileName);
+		html = this.replaceDefaultTags(html);
+		return html;
 	}
-	
+
+	public String readCSS(String fileName) {
+		String CSS_LOCATION = this.getSettingOrDefault("CSSLocation", "  ");
+		return FileUtils.readFile(CSS_LOCATION.substring(1) + "/" + fileName);
+	}
+
+	public String readJS(String fileName) {
+		String JS_LOCATION = this.getSettingOrDefault("JSLocation", "  ");
+		return FileUtils.readFile(JS_LOCATION.substring(1) + "/" + fileName);
+	}
+
+	public String readFile(String fileName) {
+		String FILE_LOCATION = this.getSettingOrDefault("FileLocation", "  ");
+		return FileUtils.readFile(FILE_LOCATION.substring(1) + "/" + fileName);
+	}
+
+	public String replaceDefaultTags(String html) {
+		for (String s : this.settingsList)
+			html = TagUtils.replaceTag(html, s, this.getSettingOrDefault(s, ""));
+
+		return html;
+	}
+
+	public MappedURL get404URL() {
+		return this.fourOhFourURL;
+	}
+
 	public String getSetting(String propertyName) {
 		return this.settings.get(propertyName);
 	}
-	
+
 	public String getSettingOrDefault(String propertyName, String def) {
 		return this.settings.getOrDefault(propertyName, def);
 	}
-	
+
+	public ArrayList<String> getSettingsList() {
+		return this.settingsList;
+	}
+
 	public Map<String, MappedURL> getURLs() {
 		return this.urls;
 	}
-	
+
 	public URLMatch getURLMatch(String u) {
 		for (String k : this.urls.keySet()) {
 			Pattern p = Pattern.compile(this.urls.get(k).getPath());
 			Matcher m = p.matcher(u);
-			if (!m.matches()) continue;
-			String matches[] = new String[m.groupCount()];
-			for (int i = 0; i < m.groupCount(); i++)
-				matches[i] = m.group(i + 1);
-			return new URLMatch(this.urls.get(k), matches);
+			if (!m.matches())
+				continue;
+			return new URLMatch(this.urls.get(k), m);
 		}
-		return new URLMatch(this.defaultURL, new String[0]);
+		return new URLMatch(this.fourOhFourURL, null);
+	}
+	
+	public Logger getLogger() {
+		return this.logger;
 	}
 
 	public void start() {
 		this.server.start();
-		this.logger.log(LogLevel.INFO, "Server has been started");
+		Global.LOGGER.info("Server has been started");
 	}
 
-	public void stop(int code) {
-		this.server.stop(code);
-		this.logger.log(LogLevel.INFO, "Server has been stopped with code " + code);
+	public void stop(Code c) {	
+		this.server.stop(c.getCode());
+		Global.LOGGER.info("Server has been stopped with code " + c.getCode() + " (" + c + ")");
+		Code.exitWithCode(c);
+	}
+	
+	public void commandLoop() {
+		String q = "";
+		Scanner s = new Scanner(System.in);
+		while (!q.equals("stop")) {
+			q = s.nextLine();
+			Global.LOGGER.info("Received Command: \"" + q + "\"");
+		}
+		s.close();
 	}
 }
