@@ -1,21 +1,20 @@
 package com.templatesrv.base;
 
-import com.templatesrv.utils.ErrorLevel;
+import com.templatesrv.utils.LogLevel;
 import com.templatesrv.utils.Global;
 import com.templatesrv.utils.LogMessage;
 
 public enum Code {
-	EXIT_OK				(0, ErrorLevel.INFO,  "OK."),
+	EXIT_OK				(0, LogLevel.INFO,  "OK."),
 	
-	ADDRESS_IN_USE		(1, ErrorLevel.FATAL, "Failed to bind to port, address already in use!"),
-	URL_UNDEFINED		(2, ErrorLevel.ERROR, "URL has no `url.json` entry."),
-	HTTP_404			(3, ErrorLevel.ERROR, "404, Page not found.");
+	ADDRESS_IN_USE		(1, LogLevel.FATAL, "Failed to bind to port, address already in use!"),
+	URL_UNDEFINED		(2, LogLevel.ERROR, "URL has no `url.json` entry.");
 
 	private final int code;
-	private final ErrorLevel level;
+	private final LogLevel level;
 	private final String description;
 
-	private Code(int code, ErrorLevel level, String description) {
+	private Code(int code, LogLevel level, String description) {
 		this.code = code;
 		this.level = level;
 		this.description = description;
@@ -25,7 +24,7 @@ public enum Code {
 		return description;
 	}
 
-	public ErrorLevel getErrorLevel() {
+	public LogLevel getErrorLevel() {
 		return this.level;
 	}
 
@@ -35,13 +34,8 @@ public enum Code {
 
 	public static void throwCode(Code c) {
 		Global.LOGGER.log(new LogMessage(c.getErrorLevel(), c.getDescription()));
-		if (c.getErrorLevel() == ErrorLevel.FATAL)
+		if (c.getErrorLevel() == LogLevel.FATAL)
 			System.exit(c.getCode());
-	}
-	
-	public static void exitWithCode(Code c) {
-		throwCode(c);
-		System.exit(c.getCode());
 	}
 	
 	@Override

@@ -24,4 +24,8 @@ public class FileUtils {
 	public static JSONResponseURLs readJSONURLs(String fileName) {
 		return new Gson().fromJson(readFile(fileName), JSONResponseURLs.class);
 	}
+	
+	public static JSONResponseAuth readJSONAuth(String fileName) {
+		return new Gson().fromJson(readFile(fileName), JSONResponseAuth.class);
+	}
 }

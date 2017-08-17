@@ -7,7 +7,7 @@ public class CSSPage implements Page {
 
 	@Override
 	public HTTPResponse renderResponse(TemplateServer s, HttpExchange h, URLMatch u) {
-		String css = s.readCSS(u.getMatch("CSSFilename"));
+		Data css = s.readCSS(u.getMatch("CSSFilename"));
 		HTTPResponse r = new HTTPResponse(css);
 		r.setHeader("Content-Type", "text/css; charset=utf-8");
 		return r;

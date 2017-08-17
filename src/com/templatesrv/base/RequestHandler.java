@@ -3,6 +3,7 @@ package com.templatesrv.base;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.templatesrv.utils.Global;
@@ -23,7 +24,7 @@ class RequestHandler implements HttpHandler {
 		try {
 			match = server.getURLMatch(exchange.getRequestURI().getPath());
 			if (match.getURL().equals(server.get404URL()))
-				Code.throwCode(Code.HTTP_404);
+				HTTPStatusCode.throwCode(HTTPStatusCode.NOT_FOUND); // I don't know about this
 			Class<Page> c = (Class<Page>) Class.forName(match.getURL().getHandler());
 			response = c.newInstance().renderResponse(server, exchange, match);
 		} catch (Exception e) {
@@ -31,15 +32,20 @@ class RequestHandler implements HttpHandler {
 			e.printStackTrace();
 		}
 
-		Global.LOGGER.info(String.format(
-				"%s %s >>> %s", 
-				exchange.getRequestMethod(), exchange.getRequestURI().getPath(), match.getURL().getHandler()));
-		
+		Headers headers = exchange.getResponseHeaders();
 		for (String s : response.getHeaders().keySet())
-			exchange.getResponseHeaders().set(s, response.getHeader(s));
-		exchange.sendResponseHeaders(200, response.getData().length);
+			headers.set(s, response.getHeader(s));
+		exchange.sendResponseHeaders(response.getStatus().getCode(), response.getData().length);
 		OutputStream os = exchange.getResponseBody();
 		os.write(response.getData());
 		os.close();
+		
+		Global.LOGGER.info(
+				"%s \"%s\" >>> %s [%d - %s]", 
+				exchange.getRequestMethod(),
+				exchange.getRequestURI().getPath(),
+				match.getURL().getHandler(),
+				response.getStatus().getCode(),
+				response.getStatus().getDescription());
 	}
 }

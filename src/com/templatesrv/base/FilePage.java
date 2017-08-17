@@ -6,10 +6,11 @@ public class FilePage implements Page {
 	// Default File Handler
 
 	@Override
-	public HTTPResponse renderResponse(TemplateServer s, HttpExchange h, URLMatch u) {
-		String filename = u.getMatch("Filename"),
-			   file = s.readFile(filename),
-			   MIME = "application/octet-stream";
+	public HTTPResponse renderResponse(TemplateServer server, HttpExchange exchange, URLMatch match) {
+		String filename = match.getMatch("Filename"),
+			   MIME     = "application/octet-stream";
+		Data file = server.readFile(filename);
+
 		if (filename.endsWith(".ico"))
 			MIME = "image/x-icon";
 		HTTPResponse r = new HTTPResponse(file);

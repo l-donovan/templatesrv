@@ -1,6 +1,6 @@
 package com.templatesrv.utils;
 
-public enum ErrorLevel {
+public enum LogLevel {
 	INFO,
 	WARN,
 	ERROR,

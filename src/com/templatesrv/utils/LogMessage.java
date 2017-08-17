@@ -1,17 +1,17 @@
 package com.templatesrv.utils;
 
 public class LogMessage {
-	private ErrorLevel l;
+	private LogLevel l;
 	private String m;
 	private long t;
 	
-	public LogMessage(ErrorLevel l, String m) {
+	public LogMessage(LogLevel l, String m) {
 		this.l = l;
 		this.m = m;
 		this.t = System.currentTimeMillis();
 	}
 	
-	public ErrorLevel getLogLevel() {
+	public LogLevel getLogLevel() {
 		return this.l;
 	}
 	

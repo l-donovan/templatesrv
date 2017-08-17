@@ -7,8 +7,9 @@ public class HTMLPage implements Page {
 
 	@Override
 	public HTTPResponse renderResponse(TemplateServer s, HttpExchange h, URLMatch u) {
-		String html = s.readHTML(u.getMatch("HTMLFilename"));
-		return new HTTPResponse(html);
+		Data html = s.readHTML(u.getMatch("HTMLFilename"));
+		HTTPResponse r = new HTTPResponse(html);
+		return r;
 	}
 
 }
