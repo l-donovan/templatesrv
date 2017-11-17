@@ -6,10 +6,10 @@ public class HTMLPage implements Page {
 	// Default HTML Handler
 
 	@Override
-	public HTTPResponse renderResponse(TemplateServer s, HttpExchange h, URLMatch u) {
-		Data html = s.readHTML(u.getMatch("HTMLFilename"));
-		HTTPResponse r = new HTTPResponse(html);
-		return r;
+	public HTTPResponse renderResponse(TemplateServer server, HttpExchange exchange, URLMatch match) {
+		Data html = server.readHTML(match.getMatch("HTMLFilename"));
+		HTTPResponse response = new HTTPResponse(html);
+		return response;
 	}
 
 }
